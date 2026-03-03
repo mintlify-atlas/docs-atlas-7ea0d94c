@@ -1,0 +1,264 @@
+---
+title: Types and validation
+description: TypeScript types and Zod validation schemas
+---
+
+## Overview
+
+The Todo List application uses TypeScript for static type checking and Zod for runtime validation. This dual approach ensures type safety at compile time and data integrity at runtime.
+
+## Todo type definition
+
+The complete type definition is located in `src/types/todo.ts:1-14`:
+
+```typescript types/todo.ts
+import z from "zod";
+
+export const subjects = ["avtash", "hagnash"];
+
+export const todoSchema = z.object({
+  name: z.string(),
+  subject: z.enum(subjects),
+  priority: z.coerce.number().min(1).max(10),
+  date: z.coerce.date(),
+  completed: z.boolean().default(false),
+});
+
+export type Todo = z.infer<typeof todoSchema>;
+```
+
+## Zod schema breakdown
+
+The `todoSchema` defines the structure and validation rules for a todo item.
+
+### Schema fields
+
+<ParamField path="name" type="string" required>
+  The name/title of the todo item. Required string with no additional constraints.
+</ParamField>
+
+<ParamField path="subject" type="enum" required>
+  The subject category. Must be one of: `"avtash"` or `"hagnash"`. Uses Zod's `z.enum()` for strict validation.
+</ParamField>
+
+<ParamField path="priority" type="number" required>
+  Priority level from 1 to 10. Uses `z.coerce.number()` to convert string input to number, then validates min/max bounds.
+</ParamField>
+
+<ParamField path="date" type="Date" required>
+  Due date for the todo. Uses `z.coerce.date()` to convert string input (from HTML date input) to JavaScript Date object.
+</ParamField>
+
+<ParamField path="completed" type="boolean" default="false">
+  Completion status. Defaults to `false` if not provided. Optional field with default value.
+</ParamField>
+
+## Type coercion
+
+Zod's coercion features are crucial for form handling:
+
+### z.coerce.number()
+
+```typescript
+priority: z.coerce.number().min(1).max(10)
+```
+
+HTML form inputs return strings. `z.coerce.number()` automatically converts:
+- `"5"` → `5`
+- Validates the number is between 1 and 10
+- Throws validation error for invalid numbers
+
+<Info>
+Without coercion, you'd need to manually parse form values: `parseInt(formJson.priority)`
+</Info>
+
+### z.coerce.date()
+
+```typescript
+date: z.coerce.date()
+```
+
+HTML date inputs return strings in `YYYY-MM-DD` format. `z.coerce.date()` converts:
+- `"2026-03-15"` → `new Date("2026-03-15")`
+- Validates the string is a valid date
+- Throws validation error for invalid dates
+
+## Enum validation
+
+The subject field uses Zod's enum validation:
+
+```typescript
+export const subjects = ["avtash", "hagnash"];
+
+export const todoSchema = z.object({
+  subject: z.enum(subjects),
+  // ...
+});
+```
+
+<Note>
+The `subjects` array is exported so it can be used in the FormDialog component to populate the dropdown menu.
+</Note>
+
+This ensures that only predefined subject values are accepted:
+- ✅ `"avtash"` - Valid
+- ✅ `"hagnash"` - Valid
+- ❌ `"other"` - Throws validation error
+
+## Type inference
+
+The Todo TypeScript type is inferred directly from the Zod schema:
+
+```typescript
+export type Todo = z.infer<typeof todoSchema>;
+```
+
+This creates a TypeScript type equivalent to:
+
+```typescript
+type Todo = {
+  name: string;
+  subject: "avtash" | "hagnash";
+  priority: number;
+  date: Date;
+  completed: boolean;
+}
+```
+
+<Info>
+Using `z.infer` ensures the TypeScript type and Zod schema stay in sync. You only define validation rules once.
+</Info>
+
+## Runtime validation
+
+The schema is used for runtime validation in the FormDialog component:
+
+```tsx FormDialog.tsx
+const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  event.preventDefault();
+  const formData = new FormData(event.currentTarget);
+  const formJson = Object.fromEntries(formData.entries());
+  const todo = todoSchema.parse(formJson);
+  onSubmit(todo);
+  onClose();
+};
+```
+
+### Validation flow
+
+1. **Form submission**: User submits form
+2. **Extract data**: `FormData` extracts all form fields
+3. **Convert to object**: `Object.fromEntries()` creates plain object
+4. **Validate**: `todoSchema.parse()` validates and transforms data
+5. **Type-safe result**: Returned `todo` is fully typed as `Todo`
+
+<CodeGroup>
+
+```typescript Input (formJson)
+{
+  name: "Buy groceries",
+  subject: "avtash",
+  priority: "5",  // string from form
+  date: "2026-03-15",  // string from date input
+  // completed not included (will use default)
+}
+```
+
+```typescript Output (todo)
+{
+  name: "Buy groceries",
+  subject: "avtash",
+  priority: 5,  // coerced to number
+  date: Date("2026-03-15"),  // coerced to Date
+  completed: false  // default value applied
+}
+```
+
+</CodeGroup>
+
+## Error handling
+
+When validation fails, Zod throws a `ZodError`:
+
+```typescript
+try {
+  const todo = todoSchema.parse(formJson);
+} catch (error) {
+  if (error instanceof z.ZodError) {
+    // error.errors contains detailed validation errors
+    console.log(error.errors);
+  }
+}
+```
+
+<Note>
+The current implementation relies on HTML5 form validation (`required` attributes) to prevent most invalid submissions before Zod validation runs.
+</Note>
+
+## Default values
+
+The `completed` field demonstrates Zod's default value feature:
+
+```typescript
+completed: z.boolean().default(false)
+```
+
+- If `completed` is not in the form data, it defaults to `false`
+- Useful for optional fields with sensible defaults
+- In the App component, this is overridden during edits to preserve completion status
+
+## Validation benefits
+
+<Tabs>
+  <Tab title="Type safety">
+    TypeScript ensures compile-time type checking:
+    - IDE autocomplete for todo properties
+    - Compile errors for typos or wrong types
+    - Refactoring safety
+  </Tab>
+  <Tab title="Runtime safety">
+    Zod ensures runtime validation:
+    - Validates user input from forms
+    - Prevents invalid data entering the application
+    - Automatic type coercion
+  </Tab>
+  <Tab title="Single source of truth">
+    Schema defines both TypeScript types and validation:
+    - No duplication between type definitions and validation logic
+    - Changes to schema automatically update types
+    - Reduced maintenance burden
+  </Tab>
+</Tabs>
+
+## Best practices
+
+1. **Define schema first**: Create Zod schema, then infer TypeScript type
+2. **Use coercion**: Leverage `z.coerce.*` for form data handling
+3. **Export constants**: Export arrays like `subjects` for use in UI components
+4. **Centralize types**: Keep all type definitions in `types/` directory
+5. **Validate at boundaries**: Always validate external data (forms, API responses)
+
+## Extending the schema
+
+To add a new field to todos:
+
+```typescript
+export const todoSchema = z.object({
+  name: z.string(),
+  subject: z.enum(subjects),
+  priority: z.coerce.number().min(1).max(10),
+  date: z.coerce.date(),
+  completed: z.boolean().default(false),
+  // Add new field:
+  description: z.string().optional(),
+});
+```
+
+The `Todo` type will automatically include the new field:
+
+```typescript
+type Todo = {
+  // ... existing fields
+  description?: string;  // automatically inferred as optional
+}
+```

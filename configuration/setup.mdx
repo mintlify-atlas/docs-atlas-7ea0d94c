@@ -1,0 +1,270 @@
+---
+title: Development environment setup
+description: Set up your local development environment for the Todo List application
+---
+
+This guide walks you through setting up the Todo List application on your local machine.
+
+## Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+- **Node.js** (v18 or higher recommended)
+- **pnpm**, **npm**, or **yarn** package manager
+
+<Note>
+This project uses **pnpm** as the default package manager. You can see `pnpm-lock.yaml` in the project root.
+</Note>
+
+## Installation
+
+<Steps>
+  <Step title="Clone the repository">
+    First, clone the repository and navigate to the project directory:
+
+    ```bash
+    git clone <repository-url>
+    cd todo-list
+    ```
+  </Step>
+
+  <Step title="Install dependencies">
+    Install all required dependencies using your preferred package manager:
+
+    <CodeGroup>
+      ```bash pnpm
+      pnpm install
+      ```
+
+      ```bash npm
+      npm install
+      ```
+
+      ```bash yarn
+      yarn install
+      ```
+    </CodeGroup>
+
+    This will install all production and development dependencies including:
+
+    **Core dependencies:**
+    - React 19.2.0
+    - Material-UI 7.3.5
+    - Zod 4.1.13 (validation)
+    - Emotion (styling)
+
+    **Development tools:**
+    - TypeScript 5.9.3
+    - Vite 7.2.4
+    - ESLint 9.39.1
+  </Step>
+
+  <Step title="Verify installation">
+    Once installation is complete, you can verify everything is working by running:
+
+    <CodeGroup>
+      ```bash pnpm
+      pnpm dev
+      ```
+
+      ```bash npm
+      npm run dev
+      ```
+
+      ```bash yarn
+      yarn dev
+      ```
+    </CodeGroup>
+
+    The development server should start and display a local URL (typically `http://localhost:5173`).
+  </Step>
+</Steps>
+
+## Available scripts
+
+The following npm scripts are available in `package.json`:
+
+### Development server
+
+Start the Vite development server with hot module replacement:
+
+<CodeGroup>
+  ```bash pnpm
+  pnpm dev
+  ```
+
+  ```bash npm
+  npm run dev
+  ```
+
+  ```bash yarn
+  yarn dev
+  ```
+</CodeGroup>
+
+The app will be available at `http://localhost:5173` by default.
+
+### Build for production
+
+Compile TypeScript and build the application for production:
+
+<CodeGroup>
+  ```bash pnpm
+  pnpm build
+  ```
+
+  ```bash npm
+  npm run build
+  ```
+
+  ```bash yarn
+  yarn build
+  ```
+</CodeGroup>
+
+This command performs two operations:
+1. `tsc -b` - TypeScript build with project references
+2. `vite build` - Vite production build
+
+The optimized output will be in the `dist/` directory.
+
+### Lint code
+
+Run ESLint to check for code quality issues:
+
+<CodeGroup>
+  ```bash pnpm
+  pnpm lint
+  ```
+
+  ```bash npm
+  npm run lint
+  ```
+
+  ```bash yarn
+  yarn lint
+  ```
+</CodeGroup>
+
+<Info>
+The project uses ESLint 9 with TypeScript support, React Hooks plugin, and React Refresh plugin.
+</Info>
+
+### Preview production build
+
+Preview the production build locally:
+
+<CodeGroup>
+  ```bash pnpm
+  pnpm preview
+  ```
+
+  ```bash npm
+  npm run preview
+  ```
+
+  ```bash yarn
+  yarn preview
+  ```
+</CodeGroup>
+
+## TypeScript configuration
+
+The project uses a TypeScript project references setup with two main configurations:
+
+### Application config (tsconfig.app.json)
+
+The main application TypeScript configuration includes:
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
+  },
+  "include": ["src"]
+}
+```
+
+<Note>
+The project uses strict TypeScript settings for maximum type safety.
+</Note>
+
+## Vite configuration
+
+The application uses Vite as the build tool with a minimal configuration:
+
+```typescript
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+})
+```
+
+The React plugin enables:
+- Fast Refresh for instant feedback during development
+- JSX transformation
+- Automatic React import injection
+
+## Project structure
+
+After installation, your project structure should look like:
+
+```
+todo-list/
+├── src/
+│   ├── types/
+│   │   └── todo.ts          # Type definitions and Zod schema
+│   ├── App.tsx              # Main application component
+│   ├── FormDialog.tsx       # Todo form dialog component
+│   ├── main.tsx             # Application entry point
+│   ├── App.css              # Component styles
+│   └── index.css            # Global styles
+├── package.json
+├── tsconfig.json            # TypeScript project references
+├── tsconfig.app.json        # Application TypeScript config
+├── vite.config.ts           # Vite configuration
+└── eslint.config.js         # ESLint configuration
+```
+
+## Troubleshooting
+
+<Warning>
+If you encounter module resolution errors, ensure you're using Node.js v18 or higher and that all dependencies are installed correctly.
+</Warning>
+
+### Common issues
+
+**Port already in use**
+
+If port 5173 is already in use, Vite will automatically try the next available port. You can also specify a custom port:
+
+```bash
+pnpm dev -- --port 3000
+```
+
+**TypeScript errors**
+
+If you see TypeScript errors, try cleaning the build cache:
+
+```bash
+rm -rf node_modules/.tmp
+pnpm build
+```
+
+**Dependency conflicts**
+
+If you experience dependency issues, try deleting the lock file and reinstalling:
+
+```bash
+rm pnpm-lock.yaml
+pnpm install
+```

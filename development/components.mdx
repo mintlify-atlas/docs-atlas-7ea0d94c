@@ -1,0 +1,413 @@
+---
+title: Components
+description: Component documentation for App and FormDialog
+---
+
+## Component overview
+
+The Todo List application consists of two main components:
+
+- **App**: Main application component managing state and rendering the todo list
+- **FormDialog**: Reusable dialog for adding and editing todos
+
+## App component
+
+The App component is the root component that manages all application state and renders the todo list interface.
+
+### Import and dependencies
+
+```tsx App.tsx
+import { useEffect, useState } from "react";
+import "./App.css";
+import { Button, Card, CardContent, IconButton, TextField, Typography, Box } from "@mui/material";
+import FormDialog from "./FormDialog";
+import type { Todo } from "./types/todo";
+```
+
+### State management
+
+The App component manages five pieces of state:
+
+<CodeGroup>
+
+```tsx State definition
+const [todoList, setTodoList] = useState<Set<Todo>>(new Set());
+const [search, setSearch] = useState("");
+const [debouncedSearch, setDebouncedSearch] = useState("");
+const [isDialogOpen, setIsDialogOpen] = useState(false);
+const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
+```
+
+</CodeGroup>
+
+<ParamField path="todoList" type="Set<Todo>">
+  Stores all todos in a Set to prevent duplicates
+</ParamField>
+
+<ParamField path="search" type="string">
+  Current search input value (uncontrolled)
+</ParamField>
+
+<ParamField path="debouncedSearch" type="string">
+  Debounced search value used for filtering (300ms delay)
+</ParamField>
+
+<ParamField path="isDialogOpen" type="boolean">
+  Controls FormDialog visibility
+</ParamField>
+
+<ParamField path="editingTodo" type="Todo | null">
+  Stores the todo being edited, or null for new todos
+</ParamField>
+
+### Key methods
+
+#### handleTodoSubmit
+
+Handles both creating new todos and updating existing ones:
+
+```tsx App.tsx
+const handleTodoSubmit = (todo: Todo) => {
+  setTodoList((prevTodoList) => {
+    const next = new Set(prevTodoList);
+    if (editingTodo) next.delete(editingTodo);
+    
+    next.add({...todo, completed: editingTodo?.completed ?? false});
+    return next;
+  });
+  setIsDialogOpen(false);
+  setEditingTodo(null);
+};
+```
+
+<Note>
+When editing, the function preserves the completion status from the original todo.
+</Note>
+
+#### toggleComplete
+
+Toggles a todo's completion status:
+
+```tsx App.tsx
+const toggleComplete = (todo: Todo) => {
+  setTodoList((prevTodoList) => {
+    const next = new Set(prevTodoList);
+    next.delete(todo);
+    next.add({ ...todo, completed: !todo.completed });
+    return next;
+  });
+};
+```
+
+#### deleteTodo
+
+Removes a todo from the list:
+
+```tsx App.tsx
+const deleteTodo = (todo: Todo) => {
+  setTodoList((prevTodoList) => {
+    const next = new Set(prevTodoList);
+    next.delete(todo);
+    return next;
+  });
+};
+```
+
+#### handleEdit
+
+Prepares a todo for editing:
+
+```tsx App.tsx
+const handleEdit = (todo: Todo) => {
+  setEditingTodo(todo);
+  setIsDialogOpen(true);
+};
+```
+
+### Render structure
+
+The component renders:
+
+1. **Search field**: TextField for filtering todos by name
+2. **Add Todo button**: Opens dialog for creating new todos
+3. **FormDialog**: Modal dialog for adding/editing todos
+4. **Clear button**: Removes all todos
+5. **Todo cards**: List of filtered todos with glassmorphic styling
+
+#### Search field implementation
+
+```tsx App.tsx
+<TextField
+  sx={{ margin: "8px 16px", input: { color: "white" }, label: { color: "white" } }}
+  id="todo-search"
+  label="Search by name"
+  variant="standard"
+  value={search}
+  onChange={(e) => setSearch(e.target.value)}
+  fullWidth
+/>
+```
+
+#### Todo card rendering
+
+```tsx App.tsx
+{filteredTodos.map((todo, index) => (
+  <Card
+    key={index}
+    sx={{
+      margin: "8px 16px",
+      background: "linear-gradient(135deg, rgba(255,255,255,0.16), rgba(255,255,255,0.02))",
+      borderRadius: 3,
+      border: "1px solid rgba(255, 255, 255, 0.4)",
+      boxShadow: "0 16px 40px rgba(15, 23, 42, 0.7)",
+      backdropFilter: "blur(18px)",
+      WebkitBackdropFilter: "blur(18px)",
+    }}
+  >
+    <CardContent sx={{ color: "white" }}>
+      <Typography
+        variant="h6"
+        sx={{
+          color: "inherit",
+          textDecoration: todo.completed ? "line-through" : "none",
+          opacity: todo.completed ? 0.7 : 1,
+        }}
+      >
+        {todo.name}
+      </Typography>
+      {/* Action buttons and metadata */}
+    </CardContent>
+  </Card>
+))}
+```
+
+<Info>
+The Card component uses inline `sx` prop styling for the glassmorphic effect with backdrop blur.
+</Info>
+
+### Action buttons
+
+Each todo card includes three IconButtons:
+
+```tsx App.tsx
+<IconButton
+  aria-label="done"
+  onClick={() => toggleComplete(todo)}
+  sx={{
+    color: todo.completed
+      ? "rgba(34,197,94,0.95)"
+      : "rgba(255,255,255,0.6)",
+  }}
+>
+  ✓
+</IconButton>
+<IconButton
+  aria-label="delete"
+  onClick={() => deleteTodo(todo)}
+  sx={{ color: "rgba(248,113,113,0.9)" }}
+>
+  🗑️
+</IconButton>
+<IconButton
+  aria-label="edit"
+  onClick={() => handleEdit(todo)}
+  sx={{ color: "rgba(255,255,255,0.9)" }}
+>
+  ✏️
+</IconButton>
+```
+
+## FormDialog component
+
+The FormDialog is a reusable component for creating and editing todos with built-in validation.
+
+### Props interface
+
+```tsx FormDialog.tsx
+type FormDialogProps = {
+  onSubmit: (todo: Todo) => void;
+  open: boolean;
+  onClose: () => void;
+  initialTodo?: Todo | null;
+};
+```
+
+<ParamField path="onSubmit" type="(todo: Todo) => void" required>
+  Callback function called when form is submitted with validated todo
+</ParamField>
+
+<ParamField path="open" type="boolean" required>
+  Controls dialog visibility
+</ParamField>
+
+<ParamField path="onClose" type="() => void" required>
+  Callback function called when dialog should close
+</ParamField>
+
+<ParamField path="initialTodo" type="Todo | null">
+  Optional todo to pre-fill form for editing. If null/undefined, form is empty for creating new todo.
+</ParamField>
+
+### Import and dependencies
+
+```tsx FormDialog.tsx
+import type { FormEvent } from "react";
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
+import { MenuItem, Select } from "@mui/material";
+import { subjects, todoSchema, type Todo } from "./types/todo";
+```
+
+### Form submission handler
+
+The component uses Zod for runtime validation:
+
+```tsx FormDialog.tsx
+const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  event.preventDefault();
+  const formData = new FormData(event.currentTarget);
+  const formJson = Object.fromEntries(formData.entries());
+  const todo = todoSchema.parse(formJson);
+  onSubmit(todo);
+  onClose();
+};
+```
+
+<Note>
+`todoSchema.parse()` will throw an error if validation fails. Material-UI's built-in HTML5 validation prevents most invalid submissions.
+</Note>
+
+### Form fields
+
+The dialog contains four input fields:
+
+#### Name field
+
+```tsx FormDialog.tsx
+<TextField
+  autoFocus
+  required
+  margin="dense"
+  id="name"
+  name="name"
+  label="name"
+  type="text"
+  fullWidth
+  variant="standard"
+  defaultValue={initialTodo?.name ?? ""}
+/>
+```
+
+#### Subject field (dropdown)
+
+```tsx FormDialog.tsx
+<Select
+  required
+  margin="dense"
+  id="subject"
+  name="subject"
+  label="subject"
+  type="radio"
+  fullWidth
+  variant="standard"
+  defaultValue={initialTodo?.subject ?? ""}
+>
+  {subjects.map((subject, index) => (
+    <MenuItem key={index} value={subject}>
+      {subject}
+    </MenuItem>
+  ))}
+</Select>
+```
+
+<Info>
+The subjects array `["avtash", "hagnash"]` is imported from `types/todo.ts` and used to populate the dropdown.
+</Info>
+
+#### Priority field
+
+```tsx FormDialog.tsx
+<TextField
+  required
+  margin="dense"
+  id="priority"
+  name="priority"
+  type="number"
+  label="priority"
+  fullWidth
+  variant="standard"
+  defaultValue={initialTodo?.priority ?? ""}
+/>
+```
+
+#### Date field
+
+```tsx FormDialog.tsx
+<TextField
+  required
+  margin="dense"
+  id="date"
+  name="date"
+  type="date"
+  fullWidth
+  variant="standard"
+  defaultValue={
+    initialTodo ? initialTodo.date.toISOString().slice(0, 10) : ""
+  }
+/>
+```
+
+<Note>
+The date field converts the Date object to ISO string format (`YYYY-MM-DD`) for the HTML5 date input.
+</Note>
+
+### Dialog structure
+
+```tsx FormDialog.tsx
+<Dialog open={open} onClose={onClose}>
+  <DialogTitle>{initialTodo ? "Edit todo" : "Add todo"}</DialogTitle>
+  <DialogContent>
+    <DialogContentText>
+      To add a todo please enter your details here.
+    </DialogContentText>
+    <form onSubmit={handleSubmit} id="todo-list-form">
+      {/* Form fields */}
+    </form>
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={onClose}>Cancel</Button>
+    <Button type="submit" form="todo-list-form">
+      Submit
+    </Button>
+  </DialogActions>
+</Dialog>
+```
+
+### Usage example
+
+From the App component:
+
+```tsx App.tsx
+<FormDialog
+  onSubmit={handleTodoSubmit}
+  open={isDialogOpen}
+  initialTodo={editingTodo}
+  onClose={() => {
+    setIsDialogOpen(false);
+    setEditingTodo(null);
+  }}
+/>
+```
+
+## Component best practices
+
+1. **Type safety**: Both components use TypeScript interfaces for props
+2. **Controlled/uncontrolled inputs**: Dialog uses `defaultValue` for uncontrolled form inputs
+3. **Accessibility**: Proper `aria-label` attributes on IconButtons
+4. **Separation of concerns**: Form logic isolated in FormDialog
+5. **Validation**: Client-side HTML5 validation + Zod runtime validation

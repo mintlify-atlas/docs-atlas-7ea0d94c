@@ -1,0 +1,133 @@
+---
+title: Managing todos
+description: Learn how to add, edit, delete, and complete todos in your task list
+---
+
+The todo list application provides a complete set of features to manage your tasks effectively. This guide walks you through adding new todos, editing existing ones, marking them as complete, and removing tasks you no longer need.
+
+## Adding a new todo
+
+Create new todos with all the essential details to keep your tasks organized.
+
+<Steps>
+  <Step title="Open the add todo dialog">
+    Click the **Add Todo** button located near the top of the application. This opens a dialog form where you can enter your todo details.
+  </Step>
+
+  <Step title="Fill in the todo details">
+    The form requires four pieces of information:
+    
+    - **Name**: Enter a descriptive name for your todo (required)
+    - **Subject**: Select either "avtash" or "hagnash" from the dropdown menu (required)
+    - **Priority**: Set a priority level from 1 to 10, where 10 is the highest priority (required)
+    - **Date**: Choose a due date using the date picker (required)
+
+    <Info>
+      All fields are required. The form won't submit unless you've filled in every field.
+    </Info>
+  </Step>
+
+  <Step title="Submit the form">
+    Click the **Submit** button to add your todo to the list. The dialog will close automatically, and your new todo will appear in the main list.
+    
+    If you change your mind, click **Cancel** to close the dialog without saving.
+  </Step>
+</Steps>
+
+<Note>
+  The application uses Zod validation to ensure your todo data is properly formatted. Priority values are automatically clamped between 1 and 10, and dates are validated to ensure they're valid date objects.
+</Note>
+
+## Editing a todo
+
+You can modify any todo after creation to update its details.
+
+<Steps>
+  <Step title="Click the edit button">
+    Each todo card has an edit button (✏️ icon) on the right side. Click it to open the edit dialog.
+  </Step>
+
+  <Step title="Update the details">
+    The same form appears with your current todo details pre-filled. You can modify:
+    
+    - The todo name
+    - The subject category
+    - The priority level
+    - The due date
+    
+    <Warning>
+      When you edit a todo, it preserves its completion status. Editing a completed todo doesn't mark it as incomplete.
+    </Warning>
+  </Step>
+
+  <Step title="Save your changes">
+    Click **Submit** to save the updated todo. The changes appear immediately in your todo list.
+  </Step>
+</Steps>
+
+## Completing and uncompleting todos
+
+Track your progress by marking todos as complete or incomplete.
+
+### Marking a todo as complete
+
+Click the checkmark button (✓) on any incomplete todo. When completed:
+
+- The todo name gets a strikethrough style
+- The text becomes slightly transparent (70% opacity)
+- The checkmark button turns green
+
+### Marking a todo as incomplete
+
+Click the checkmark button (✓) on a completed todo to mark it as incomplete again. The strikethrough and transparency are removed, and the checkmark returns to its default white color.
+
+<Tip>
+  You can toggle the completion status as many times as needed. This is useful if you need to revisit a task or if you accidentally marked it complete.
+</Tip>
+
+## Deleting todos
+
+Remove todos you no longer need from your list.
+
+<Steps>
+  <Step title="Click the delete button">
+    Each todo card has a delete button (🗑️ icon) with a red color. Click it to remove the todo.
+  </Step>
+
+  <Step title="Todo is removed immediately">
+    The todo is deleted instantly from your list with no confirmation dialog.
+    
+    <Warning>
+      Deletion is permanent. There's no undo function, so make sure you want to delete the todo before clicking the delete button.
+    </Warning>
+  </Step>
+</Steps>
+
+## Clearing all todos
+
+If you want to start fresh, you can clear your entire todo list at once.
+
+Click the **Clear** button located near the top of the application (below the Add Todo button). This removes all todos from your list immediately.
+
+<Warning>
+  The Clear button deletes all todos without confirmation. This action cannot be undone.
+</Warning>
+
+## Todo card layout
+
+Each todo appears as a card with a glassmorphic design showing:
+
+- **Todo name** (top) - Crossed out if completed
+- **Subject and priority** (bottom left) - Displayed as "subject • Priority X"
+- **Due date** (bottom center) - Formatted based on your locale
+- **Action buttons** (bottom right) - Complete (✓), Delete (🗑️), and Edit (✏️)
+
+The cards feature a modern design with:
+- Gradient background with transparency
+- Border with subtle glow
+- Backdrop blur effect for depth
+- Shadow for visual separation
+
+<Info>
+  Completed todos remain in your list but are visually distinguished with the strikethrough style. This lets you see your accomplishments while keeping your active tasks visible.
+</Info>

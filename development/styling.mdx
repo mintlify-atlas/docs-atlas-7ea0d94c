@@ -1,0 +1,382 @@
+---
+title: Styling
+description: Styling approach with Material-UI and custom CSS
+---
+
+## Overview
+
+The Todo List application uses a combination of Material-UI's `sx` prop, Emotion (Material-UI's styling engine), and custom CSS files to create a glassmorphic user interface with a dark theme.
+
+## Styling approach
+
+The application employs three styling methods:
+
+1. **Material-UI sx prop**: Inline component styling with theme integration
+2. **Global CSS**: Base styles and CSS custom properties in `index.css`
+3. **Component CSS**: Component-specific styles in `App.css`
+
+## Global styles
+
+The `src/index.css:1-69` file defines global styles and CSS variables:
+
+```css index.css
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+```
+
+### Key global styles
+
+<ParamField path="font-family" type="CSS property">
+  System font stack for native appearance across platforms
+</ParamField>
+
+<ParamField path="color-scheme" type="light dark">
+  Enables dark mode support with automatic system preferences
+</ParamField>
+
+<ParamField path="background-color" type="#242424">
+  Dark background color for the entire application
+</ParamField>
+
+<ParamField path="text-rendering" type="optimizeLegibility">
+  Enhanced text rendering with `-webkit-font-smoothing` for better readability
+</ParamField>
+
+### Body layout
+
+```css index.css
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+```
+
+<Info>
+The body uses flexbox with `place-items: center` to center the application content vertically and horizontally.
+</Info>
+
+## Component styles
+
+The `src/App.css:1-43` file contains component-specific styles:
+
+```css App.css
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+```
+
+<Note>
+The root container has a max-width of 1280px and is centered with auto margins for responsive layout.
+</Note>
+
+## Glassmorphic design
+
+The application's signature visual style is the glassmorphic effect applied to todo cards.
+
+### Glassmorphic card styling
+
+Implemented in `src/App.tsx:100-111`:
+
+```tsx App.tsx
+<Card
+  sx={{
+    margin: "8px 16px",
+    background: "linear-gradient(135deg, rgba(255,255,255,0.16), rgba(255,255,255,0.02))",
+    borderRadius: 3,
+    border: "1px solid rgba(255, 255, 255, 0.4)",
+    boxShadow: "0 16px 40px rgba(15, 23, 42, 0.7)",
+    backdropFilter: "blur(18px)",
+    WebkitBackdropFilter: "blur(18px)",
+  }}
+>
+```
+
+### Glassmorphic effect breakdown
+
+<Tabs>
+  <Tab title="Background gradient">
+    ```css
+    background: linear-gradient(135deg, rgba(255,255,255,0.16), rgba(255,255,255,0.02));
+    ```
+    
+    Creates a subtle diagonal gradient from semi-transparent white (16% opacity) to nearly transparent (2% opacity).
+  </Tab>
+  <Tab title="Border and shadow">
+    ```css
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    boxShadow: 0 16px 40px rgba(15, 23, 42, 0.7);
+    borderRadius: 3;
+    ```
+    
+    - Semi-transparent white border (40% opacity) for glass edge effect
+    - Large, soft shadow for depth
+    - Border radius for rounded corners (theme spacing unit * 3 = 24px)
+  </Tab>
+  <Tab title="Backdrop blur">
+    ```css
+    backdropFilter: blur(18px);
+    WebkitBackdropFilter: blur(18px);
+    ```
+    
+    Applies 18px blur to content behind the card, creating the frosted glass effect. `WebkitBackdropFilter` ensures Safari compatibility.
+  </Tab>
+</Tabs>
+
+<Info>
+The glassmorphic effect requires both `backdropFilter` and `WebkitBackdropFilter` for cross-browser support.
+</Info>
+
+## Material-UI sx prop
+
+The application extensively uses Material-UI's `sx` prop for component styling.
+
+### TextField styling
+
+```tsx App.tsx
+<TextField
+  sx={{
+    margin: "8px 16px",
+    input: { color: "white" },
+    label: { color: "white" }
+  }}
+  id="todo-search"
+  label="Search by name"
+  variant="standard"
+  value={search}
+  onChange={(e) => setSearch(e.target.value)}
+  fullWidth
+/>
+```
+
+<Note>
+The `sx` prop allows nested selectors to style child elements like `input` and `label`.
+</Note>
+
+### Typography styling
+
+Todo title with conditional styling based on completion status:
+
+```tsx App.tsx
+<Typography
+  variant="h6"
+  sx={{
+    color: "inherit",
+    textDecoration: todo.completed ? "line-through" : "none",
+    opacity: todo.completed ? 0.7 : 1,
+  }}
+>
+  {todo.name}
+</Typography>
+```
+
+Completed todos are styled with:
+- Line-through text decoration
+- Reduced opacity (70%)
+
+### Metadata typography
+
+```tsx App.tsx
+<Typography sx={{ color: "rgba(255,255,255,0.85)" }}>
+  {todo.subject} • Priority {todo.priority}
+</Typography>
+<Typography sx={{ color: "rgba(255,255,255,0.7)" }}>
+  {todo.date.toLocaleDateString()}
+</Typography>
+```
+
+Uses varying opacity levels to create visual hierarchy:
+- Primary metadata: 85% opacity
+- Secondary metadata (date): 70% opacity
+
+## IconButton styling
+
+Action buttons use dynamic colors based on state and purpose:
+
+### Completion button
+
+```tsx App.tsx
+<IconButton
+  aria-label="done"
+  onClick={() => toggleComplete(todo)}
+  sx={{
+    color: todo.completed
+      ? "rgba(34,197,94,0.95)"  // Green for completed
+      : "rgba(255,255,255,0.6)",  // White for incomplete
+  }}
+>
+  ✓
+</IconButton>
+```
+
+### Delete button
+
+```tsx App.tsx
+<IconButton
+  aria-label="delete"
+  onClick={() => deleteTodo(todo)}
+  sx={{ color: "rgba(248,113,113,0.9)" }}  // Red
+>
+  🗑️
+</IconButton>
+```
+
+### Edit button
+
+```tsx App.tsx
+<IconButton
+  aria-label="edit"
+  onClick={() => handleEdit(todo)}
+  sx={{ color: "rgba(255,255,255,0.9)" }}  // White
+>
+  ✏️
+</IconButton>
+```
+
+## Color palette
+
+The application uses a carefully chosen color palette with alpha transparency:
+
+<CodeGroup>
+
+```css Background colors
+Background: #242424 (dark gray)
+Card gradient: rgba(255,255,255,0.16) → rgba(255,255,255,0.02)
+Card border: rgba(255,255,255,0.4)
+```
+
+```css Text colors
+Primary text: rgba(255,255,255,0.87)
+Secondary text: rgba(255,255,255,0.85)
+Tertiary text: rgba(255,255,255,0.7)
+Completed text: rgba(255,255,255,0.7) with line-through
+```
+
+```css Action colors
+Completion (done): rgba(34,197,94,0.95) - Green
+Completion (pending): rgba(255,255,255,0.6) - White
+Delete: rgba(248,113,113,0.9) - Red
+Edit: rgba(255,255,255,0.9) - White
+```
+
+</CodeGroup>
+
+## Responsive design
+
+The application includes responsive considerations:
+
+### Container constraints
+
+```css App.css
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+```
+
+### Minimum viewport size
+
+```css index.css
+body {
+  min-width: 320px;
+  min-height: 100vh;
+}
+```
+
+### Material-UI fullWidth prop
+
+```tsx
+<TextField
+  fullWidth
+  // ...
+/>
+```
+
+<Info>
+Material-UI's `fullWidth` prop makes components responsive, taking 100% of their container's width.
+</Info>
+
+## Theme integration
+
+Material-UI components inherit from the default theme:
+
+- `borderRadius: 3` = theme spacing unit × 3 = 24px
+- Consistent spacing with `margin: "8px 16px"`
+- Standard Material-UI variants (`outlined`, `standard`)
+
+## Emotion styling engine
+
+Material-UI v7 uses Emotion for CSS-in-JS:
+
+```json package.json
+{
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/material": "^7.3.5"
+  }
+}
+```
+
+Benefits:
+- Type-safe styling with TypeScript
+- Theme-aware styling
+- Dynamic styles based on props
+- Automatic critical CSS extraction
+
+## Light mode support
+
+The application includes light mode styles:
+
+```css index.css
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+}
+```
+
+<Note>
+While light mode CSS is included, the Material-UI components are styled explicitly for dark mode. Full light mode support would require conditional theming.
+</Note>
+
+## Best practices
+
+1. **Use sx prop for component styles**: Keeps styles co-located with components
+2. **Leverage theme values**: Use theme spacing and breakpoints for consistency
+3. **RGBA for transparency**: Enables layering and glassmorphic effects
+4. **Semantic naming**: Use descriptive `aria-label` attributes
+5. **Conditional styling**: Use ternary operators in `sx` for dynamic styles
+6. **Cross-browser compatibility**: Include vendor prefixes (`WebkitBackdropFilter`)
+
+## Styling resources
+
+- [Material-UI sx prop documentation](https://mui.com/system/getting-started/the-sx-prop/)
+- [Emotion documentation](https://emotion.sh/docs/introduction)
+- [CSS backdrop-filter](https://developer.mozilla.org/en-US/docs/Web/CSS/backdrop-filter)

@@ -1,0 +1,365 @@
+---
+title: Customize the application
+description: Learn how to customize subjects, fields, styling, and validation rules
+---
+
+The Todo List application is built to be easily customizable. This guide covers the most common customization scenarios.
+
+## Customize subjects
+
+Subjects are defined in the `src/types/todo.ts` file and control the available categories for todos.
+
+### Add new subjects
+
+The subjects array defines available options in the subject dropdown:
+
+```typescript src/types/todo.ts
+export const subjects = ["avtash", "hagnash"];
+```
+
+To add new subjects, simply add them to the array:
+
+```typescript
+export const subjects = ["avtash", "hagnash", "work", "personal", "shopping"];
+```
+
+<Note>
+The `subjects` array is used both for the Zod schema validation and for rendering the dropdown options in `FormDialog.tsx`.
+</Note>
+
+### Update the schema
+
+The subjects are automatically integrated into the Zod schema:
+
+```typescript src/types/todo.ts
+export const todoSchema = z.object({
+  name: z.string(),
+  subject: z.enum(subjects), // Uses the subjects array
+  priority: z.coerce.number().min(1).max(10),
+  date: z.coerce.date(),
+  completed: z.boolean().default(false),
+});
+```
+
+No additional changes are needed - the schema will automatically validate against your updated subjects array.
+
+## Add new todo fields
+
+To add a new field to todos, you'll need to update three files:
+
+<Steps>
+  <Step title="Update the Zod schema">
+    Add the new field to the schema in `src/types/todo.ts`:
+
+    ```typescript src/types/todo.ts
+    export const todoSchema = z.object({
+      name: z.string(),
+      subject: z.enum(subjects),
+      priority: z.coerce.number().min(1).max(10),
+      date: z.coerce.date(),
+      completed: z.boolean().default(false),
+      // Add new fields here
+      tags: z.array(z.string()).optional(),
+      description: z.string().optional(),
+    });
+    ```
+
+    <Info>
+    The TypeScript type is automatically inferred from the schema using `z.infer<typeof todoSchema>`.
+    </Info>
+  </Step>
+
+  <Step title="Update the form dialog">
+    Add form inputs for the new field in `src/FormDialog.tsx`:
+
+    ```tsx src/FormDialog.tsx
+    <TextField
+      margin="dense"
+      id="description"
+      name="description"
+      label="Description"
+      type="text"
+      fullWidth
+      multiline
+      rows={3}
+      variant="standard"
+      defaultValue={initialTodo?.description ?? ""}
+    />
+    ```
+
+    The form uses `FormData` and automatically parses values through the Zod schema on submit.
+  </Step>
+
+  <Step title="Display the field">
+    Update `src/App.tsx` to display the new field in the todo card:
+
+    ```tsx src/App.tsx
+    <CardContent sx={{ color: "white" }}>
+      <Typography variant="h6">
+        {todo.name}
+      </Typography>
+      {todo.description && (
+        <Typography sx={{ color: "rgba(255,255,255,0.7)", mt: 1 }}>
+          {todo.description}
+        </Typography>
+      )}
+      {/* Rest of the card content */}
+    </CardContent>
+    ```
+  </Step>
+</Steps>
+
+## Modify validation rules
+
+Validation is handled by Zod in `src/types/todo.ts`. Here are common customizations:
+
+### Change priority range
+
+The default priority range is 1-10:
+
+```typescript
+priority: z.coerce.number().min(1).max(10)
+```
+
+To change the range:
+
+```typescript
+priority: z.coerce.number().min(1).max(5) // Priority 1-5
+```
+
+### Add name validation
+
+Add length or pattern requirements to the name field:
+
+```typescript
+name: z.string()
+  .min(3, "Name must be at least 3 characters")
+  .max(100, "Name must be less than 100 characters")
+```
+
+### Make fields optional
+
+By default, most fields are required. To make a field optional:
+
+```typescript
+date: z.coerce.date().optional()
+```
+
+### Add custom validation
+
+Use Zod's `.refine()` method for custom validation logic:
+
+```typescript
+export const todoSchema = z.object({
+  name: z.string(),
+  subject: z.enum(subjects),
+  priority: z.coerce.number().min(1).max(10),
+  date: z.coerce.date(),
+  completed: z.boolean().default(false),
+}).refine(
+  (data) => data.date >= new Date(),
+  { message: "Date must be in the future", path: ["date"] }
+);
+```
+
+<Warning>
+Changes to validation rules will affect form submission. Make sure your form inputs can satisfy the new validation requirements.
+</Warning>
+
+## Customize styling
+
+The application uses a combination of Material-UI's `sx` prop and CSS files for styling.
+
+### Global styles
+
+Global styles are defined in `src/index.css`:
+
+```css src/index.css
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+}
+```
+
+You can customize:
+- **Font family**: Update the `font-family` property
+- **Color scheme**: Modify `color` and `background-color`
+- **Dark/light mode**: Adjust the `@media (prefers-color-scheme: light)` section
+
+### Component styles
+
+Component-specific styles are in `src/App.css`:
+
+```css src/App.css
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+```
+
+### Material-UI theme customization
+
+The application uses inline `sx` props for Material-UI components. To create a consistent theme, you can wrap your app with `ThemeProvider`:
+
+<Steps>
+  <Step title="Create a theme file">
+    Create `src/theme.ts`:
+
+    ```typescript src/theme.ts
+    import { createTheme } from '@mui/material/styles';
+
+    export const theme = createTheme({
+      palette: {
+        mode: 'dark',
+        primary: {
+          main: '#646cff',
+        },
+        secondary: {
+          main: '#535bf2',
+        },
+      },
+      typography: {
+        fontFamily: 'system-ui, Avenir, Helvetica, Arial, sans-serif',
+      },
+    });
+    ```
+  </Step>
+
+  <Step title="Apply the theme">
+    Update `src/main.tsx` to use the theme:
+
+    ```tsx src/main.tsx
+    import { ThemeProvider } from '@mui/material/styles';
+    import { theme } from './theme';
+
+    createRoot(document.getElementById('root')!).render(
+      <StrictMode>
+        <ThemeProvider theme={theme}>
+          <App />
+        </ThemeProvider>
+      </StrictMode>,
+    );
+    ```
+  </Step>
+</Steps>
+
+### Customize todo card styling
+
+The glassmorphism effect on todo cards is defined in `src/App.tsx`:
+
+```tsx src/App.tsx
+<Card
+  sx={{
+    margin: "8px 16px",
+    background: "linear-gradient(135deg, rgba(255,255,255,0.16), rgba(255,255,255,0.02))",
+    borderRadius: 3,
+    border: "1px solid rgba(255, 255, 255, 0.4)",
+    boxShadow: "0 16px 40px rgba(15, 23, 42, 0.7)",
+    backdropFilter: "blur(18px)",
+  }}
+>
+```
+
+You can customize:
+- **Background gradient**: Adjust the `linear-gradient` values
+- **Border radius**: Change `borderRadius` (3 = 12px in Material-UI)
+- **Border color**: Modify the `border` property
+- **Shadow**: Update `boxShadow` for depth
+- **Blur effect**: Adjust `backdropFilter` blur amount
+
+## Modify search behavior
+
+The search functionality uses debounced filtering in `src/App.tsx`:
+
+```typescript src/App.tsx
+const [search, setSearch] = useState("");
+const [debouncedSearch, setDebouncedSearch] = useState("");
+
+useEffect(() => {
+  const timeoutId = setTimeout(() => {
+    setDebouncedSearch(search.trim().toLowerCase());
+  }, 300);
+
+  return () => clearTimeout(timeoutId);
+}, [search]);
+```
+
+### Change debounce delay
+
+To adjust the search responsiveness, change the timeout value (in milliseconds):
+
+```typescript
+setTimeout(() => {
+  setDebouncedSearch(search.trim().toLowerCase());
+}, 500); // 500ms delay instead of 300ms
+```
+
+### Search by additional fields
+
+The current implementation only searches by name:
+
+```typescript src/App.tsx
+const filteredTodos = Array.from(todoList).filter((todo) => {
+  if (!debouncedSearch) return true;
+  return todo.name.toLowerCase().includes(debouncedSearch);
+});
+```
+
+To search by multiple fields:
+
+```typescript
+const filteredTodos = Array.from(todoList).filter((todo) => {
+  if (!debouncedSearch) return true;
+  return (
+    todo.name.toLowerCase().includes(debouncedSearch) ||
+    todo.subject.toLowerCase().includes(debouncedSearch)
+  );
+});
+```
+
+## Storage customization
+
+Currently, todos are stored in component state and lost on refresh. To persist todos:
+
+### Add localStorage persistence
+
+<Steps>
+  <Step title="Save to localStorage">
+    Update the state setter to save to localStorage:
+
+    ```typescript src/App.tsx
+    const [todoList, setTodoList] = useState<Set<Todo>>(() => {
+      const stored = localStorage.getItem('todos');
+      if (stored) {
+        return new Set(JSON.parse(stored));
+      }
+      return new Set();
+    });
+    ```
+  </Step>
+
+  <Step title="Sync on changes">
+    Add an effect to sync changes:
+
+    ```typescript src/App.tsx
+    useEffect(() => {
+      localStorage.setItem('todos', JSON.stringify(Array.from(todoList)));
+    }, [todoList]);
+    ```
+  </Step>
+</Steps>
+
+<Warning>
+localStorage stores data as strings. Make sure to serialize and deserialize your data properly, especially Date objects.
+</Warning>
+
+## Next steps
+
+After customizing your application:
+
+1. Run the development server to test your changes
+2. Check the browser console for any validation errors
+3. Run `pnpm lint` to ensure code quality
+4. Build for production with `pnpm build`

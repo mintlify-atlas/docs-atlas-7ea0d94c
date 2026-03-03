@@ -1,0 +1,151 @@
+---
+title: Search and filter
+description: Quickly find specific todos using the search functionality
+---
+
+The todo list includes a powerful search feature that helps you quickly locate specific tasks by name. This is especially useful when you have many todos and need to find a particular one.
+
+## Using the search feature
+
+The search bar is located at the very top of the application, making it easily accessible at all times.
+
+<Steps>
+  <Step title="Locate the search field">
+    Look for the text field labeled **"Search by name"** at the top of the application. It's always visible above the Add Todo button.
+  </Step>
+
+  <Step title="Start typing">
+    Click on the search field and begin typing any part of the todo name you're looking for. The search is case-insensitive, so "PROJECT" and "project" will return the same results.
+  </Step>
+
+  <Step title="View filtered results">
+    As you type, the todo list automatically updates to show only matching todos. The search happens in real-time with a 300ms debounce for optimal performance.
+    
+    <Info>
+      The debounce delay means the search waits 300 milliseconds after you stop typing before filtering. This prevents excessive filtering while you're still typing and improves performance.
+    </Info>
+  </Step>
+</Steps>
+
+## How search works
+
+Understanding the search behavior helps you find todos more effectively.
+
+### Search criteria
+
+The search feature:
+
+- **Searches only todo names** - It doesn't search subjects, priorities, or dates
+- **Performs substring matching** - Finds todos where the name contains your search term anywhere in the text
+- **Is case-insensitive** - "Meeting" matches "MEETING", "meeting", and "MeEtInG"
+- **Trims whitespace** - Leading and trailing spaces in your search are automatically removed
+
+### Search examples
+
+<Accordion title="Example: Finding todos with 'report' in the name">
+  If you type "report" in the search field, it will match:
+  
+  - "Write monthly report"
+  - "Report bugs to team"
+  - "Project reporting system"
+  - "REPORT ANALYSIS"
+  
+  It won't match:
+  - "Submit documentation" (doesn't contain "report")
+  - Todos with "report" in the subject but not the name
+</Accordion>
+
+<Accordion title="Example: Using partial searches">
+  You can search with just a few letters:
+  
+  - Searching "meet" finds "Team meeting", "Meeting notes", "Meet with client"
+  - Searching "proj" finds "Project A", "Project planning", "New project"
+  
+  This makes it quick to filter todos without typing the complete name.
+</Accordion>
+
+## Viewing search results
+
+When search results are displayed:
+
+- **Matching todos appear** in the list with their full details
+- **Non-matching todos are hidden** but not deleted
+- **All todo information remains visible** including subject, priority, date, and action buttons
+- **You can still interact with filtered todos** - complete, edit, or delete them
+
+<Note>
+  The search only filters the view. Your todos are not modified or deleted when they're hidden by the search filter.
+</Note>
+
+## Clearing the search
+
+To return to viewing all your todos:
+
+<Steps>
+  <Step title="Clear the search field">
+    Delete all text from the search field using backspace or by selecting all and deleting.
+  </Step>
+
+  <Step title="All todos reappear">
+    As soon as the search field is empty, all your todos become visible again in the list.
+  </Step>
+</Steps>
+
+<Tip>
+  You can clear the search at any time to see your complete todo list again. The search is non-destructive and only controls visibility.
+</Tip>
+
+## Search performance
+
+The application implements several optimizations for a smooth search experience:
+
+### Debounced search
+
+The search uses a 300ms debounce timer, which means:
+
+- The filter doesn't run on every keystroke
+- It waits until you pause or finish typing
+- This reduces unnecessary re-renders and improves performance
+- The delay is short enough that it feels instant to users
+
+### Efficient filtering
+
+The implementation:
+
+- Converts search terms to lowercase once, not for every todo
+- Uses native JavaScript string matching for speed
+- Only re-filters when the debounced search value changes
+- Maintains the original todo list separately from the filtered view
+
+<Info>
+  The debounce is implemented using React's `useEffect` hook with proper cleanup to prevent memory leaks if you navigate away or unmount the component.
+</Info>
+
+## Search limitations
+
+<Warning>
+  The search feature currently has these limitations:
+  
+  - **Name only**: Doesn't search by subject, priority level, or date
+  - **No advanced operators**: Doesn't support regex or boolean operators (AND/OR)
+  - **Single field**: Can't filter by multiple criteria simultaneously
+</Warning>
+
+For more complex filtering needs, you may need to:
+
+- Browse your todos manually
+- Use specific naming conventions to make searches more effective
+- Organize todos by subject and priority when creating them
+
+## Best practices for searchable todos
+
+To make the most of the search feature:
+
+1. **Use descriptive names** - Include key terms that you'll remember and search for
+2. **Be consistent with naming** - Use similar patterns for related todos
+3. **Include context in the name** - Add project names or key identifiers
+4. **Avoid abbreviations** - Use full words that are easier to search for
+
+<Tip>
+  Consider starting todo names with project or category identifiers like "Client A - Meeting" or "Project X - Documentation" to make them easier to find and group when searching.
+</Tip>

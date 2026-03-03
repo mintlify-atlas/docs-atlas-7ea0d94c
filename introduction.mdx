@@ -1,0 +1,175 @@
+---
+title: Introduction
+description: A modern React + TypeScript todo list application with Material-UI glassmorphic design and Zod validation
+---
+
+# Welcome to Todo List
+
+A beautiful, type-safe todo list application built with React 19, TypeScript, and Material-UI. Features a stunning glassmorphic UI design with robust form validation powered by Zod.
+
+<CardGroup cols={2}>
+  <Card title="Quick start" icon="rocket" href="/quickstart">
+    Get up and running in less than 5 minutes
+  </Card>
+  <Card title="Architecture" icon="sitemap" href="/development/architecture">
+    Understand the component structure and data flow
+  </Card>
+  <Card title="Components" icon="puzzle-piece" href="/development/components">
+    Explore the App and FormDialog components
+  </Card>
+  <Card title="Type safety" icon="shield-check" href="/development/types-validation">
+    Learn about Zod schemas and TypeScript integration
+  </Card>
+</CardGroup>
+
+## Key features
+
+This application demonstrates modern React development practices with production-ready features:
+
+### Core functionality
+- **CRUD operations** - Add, edit, delete, and toggle completion status for todos
+- **Real-time search** - Debounced search by todo name with instant filtering
+- **Priority system** - Assign priority levels from 1-10 to organize tasks
+- **Subject categorization** - Group todos by subject (avtash, hagnash)
+- **Date tracking** - Set and display due dates for each todo
+
+### Technical highlights
+- **Type safety** - Full TypeScript coverage with Zod runtime validation
+- **Modern React** - Built with React 19 and functional components with hooks
+- **Glassmorphic UI** - Beautiful Material-UI cards with backdrop blur effects
+- **State management** - Uses Set data structure for efficient todo management
+- **Form validation** - Client-side validation with Zod schemas
+- **Debounced search** - Optimized search performance with 300ms debounce
+
+## Technology stack
+
+<CardGroup cols={3}>
+  <Card title="React 19" icon="react">
+    Latest React with modern hooks and patterns
+  </Card>
+  <Card title="TypeScript" icon="code">
+    Type-safe development with strict mode
+  </Card>
+  <Card title="Material-UI" icon="palette">
+    Beautiful component library with Emotion styling
+  </Card>
+  <Card title="Zod" icon="shield">
+    Runtime schema validation
+  </Card>
+  <Card title="Vite" icon="bolt">
+    Lightning-fast dev server and build tool
+  </Card>
+  <Card title="pnpm" icon="box">
+    Efficient package management
+  </Card>
+</CardGroup>
+
+## Component overview
+
+The application is built with two primary components:
+
+### App component
+
+The main application component (`src/App.tsx:7`) manages the todo list state and renders the UI:
+
+```tsx
+function App() {
+  const [todoList, setTodoList] = useState<Set<Todo>>(new Set());
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
+  // ...
+}
+```
+
+<Note>
+  The app uses a Set data structure for the todo list, which provides O(1) lookup and ensures unique todos based on object reference.
+</Note>
+
+### FormDialog component
+
+A reusable dialog component (`src/FormDialog.tsx:19`) for adding and editing todos:
+
+```tsx
+export default function FormDialog({
+  onSubmit,
+  open,
+  onClose,
+  initialTodo,
+}: FormDialogProps) {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const formJson = Object.fromEntries(formData.entries());
+    const todo = todoSchema.parse(formJson);
+    onSubmit(todo);
+    onClose();
+  };
+  // ...
+}
+```
+
+## Type safety with Zod
+
+The application uses Zod for runtime validation and TypeScript type inference:
+
+```typescript
+import z from "zod";
+
+export const subjects = ["avtash", "hagnash"];
+
+export const todoSchema = z.object({
+  name: z.string(),
+  subject: z.enum(subjects),
+  priority: z.coerce.number().min(1).max(10),
+  date: z.coerce.date(),
+  completed: z.boolean().default(false),
+});
+
+export type Todo = z.infer<typeof todoSchema>;
+```
+
+<Tip>
+  The `z.coerce` methods automatically convert form string inputs to the correct types (number and Date), making form handling seamless.
+</Tip>
+
+## UI design
+
+The application features a stunning glassmorphic design with Material-UI components:
+
+```tsx
+<Card
+  sx={{
+    margin: "8px 16px",
+    background:
+      "linear-gradient(135deg, rgba(255,255,255,0.16), rgba(255,255,255,0.02))",
+    borderRadius: 3,
+    border: "1px solid rgba(255, 255, 255, 0.4)",
+    boxShadow: "0 16px 40px rgba(15, 23, 42, 0.7)",
+    backdropFilter: "blur(18px)",
+    WebkitBackdropFilter: "blur(18px)",
+  }}
+>
+```
+
+<Info>
+  The glassmorphic effect is achieved using backdrop filters, semi-transparent backgrounds, and carefully crafted borders and shadows.
+</Info>
+
+## Next steps
+
+<Steps>
+  <Step title="Set up your environment">
+    Follow the [Quick start guide](/quickstart) to install dependencies and run the app
+  </Step>
+  <Step title="Explore the architecture">
+    Learn about the component structure and state management patterns
+  </Step>
+  <Step title="Customize the design">
+    Modify the glassmorphic styles or add your own theme
+  </Step>
+  <Step title="Extend functionality">
+    Add features like persistence, sorting, or filtering by priority
+  </Step>
+</Steps>
