@@ -1,0 +1,59 @@
+{
+  "projectType": "frontend",
+  "projectName": "Todo List",
+  "projectDescription": "A modern React + TypeScript todo list application with Material-UI components and Zod validation",
+  "theme": "almond",
+  "primaryColor": "#6366f1",
+  "lightColor": "#818cf8",
+  "darkColor": "#4f46e5",
+  "navigation": {
+    "groups": [
+      {
+        "group": "Overview",
+        "pages": [
+          "introduction",
+          "quickstart"
+        ]
+      },
+      {
+        "group": "User Guide",
+        "pages": [
+          "features/managing-todos",
+          "features/search-filter",
+          "features/priority-subjects"
+        ]
+      },
+      {
+        "group": "Development",
+        "pages": [
+          "development/architecture",
+          "development/components",
+          "development/types-validation",
+          "development/styling"
+        ]
+      },
+      {
+        "group": "Configuration",
+        "pages": [
+          "configuration/setup",
+          "configuration/customization"
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Add, edit, and delete todos with form validation",
+    "Mark todos as complete/incomplete",
+    "Search and filter todos by name",
+    "Priority levels (1-10) and subject categorization",
+    "Modern glassmorphic UI with Material-UI components",
+    "TypeScript type safety with Zod schema validation"
+  ],
+  "publicApiSurface": [
+    "App component",
+    "FormDialog component",
+    "Todo type",
+    "todoSchema (Zod)",
+    "subjects array"
+  ]
+}
